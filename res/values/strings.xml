@@ -4,5 +4,14 @@
     <string name="app_name">WestPacNews</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
+    <string name="refresh">Refresh</string>
+    <string name="news">News</string>
+    <string name="loading">Loading</string>
+    <string name="loading_news_feed">Loading Newsfeed ...</string>
+    <string name="loading_success">Load Newsfeed successfully!</string>
+    <string name="loading_unsuccess">Fail to load Newsfeed!</string>
+    <string name="web_content">Web Contents</string>
+    <string name="web_content_invalid">Invalid web content!</string>
+    <string name="web_back">Back</string>
 
 </resources>

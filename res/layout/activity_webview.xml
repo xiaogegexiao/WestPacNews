@@ -1,43 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity" 
-    android:orientation="vertical"
-    android:background="@android:color/white">
+    android:orientation="vertical" >
 
     <RelativeLayout
         android:id="@+id/rl_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/title_bg">
-        <Button 
-            android:background="@drawable/refreshbtn_bg"
-            android:id="@+id/btn_refresh"
+        android:background="@drawable/title_bg" >
+
+        <Button
+            android:id="@+id/btn_back"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/refresh"
-            android:layout_centerVertical="true"
             android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/backbutton"
+            android:gravity="center"
+            android:text="@string/web_back"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:textColor="@android:color/white"
-            android:textStyle="bold"
-            android:gravity="center"/>
-        <TextView 
+            android:textStyle="bold" />
+
+        <TextView
             android:id="@+id/tv_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/news"
+            android:layout_centerInParent="true"
+            android:text="@string/web_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textStyle="bold"
-            android:layout_centerInParent="true"/>
+            android:textStyle="bold" />
     </RelativeLayout>
-
-    <ListView
-        android:id="@+id/lv_newsfeed"
+    
+    <WebView 
+        android:id="@+id/wv_content"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_weight="1">
-    </ListView>
+        android:layout_weight="1"/>
 
 </LinearLayout>
