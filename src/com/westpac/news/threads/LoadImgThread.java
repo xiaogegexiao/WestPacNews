@@ -14,13 +14,31 @@ import com.westpac.news.model.UrlBitmap;
 import com.westpac.news.util.ImageLoadUtil;
 import com.westpac.news.util.MethodHandler;
 
+/**
+ * Load image thread load image from server
+ * 
+ * @author xiao
+ * 
+ */
 public class LoadImgThread implements Runnable, Serializable {
+	public static final long serialVersionUID = 00000000000000;
+
+	/**
+	 * url connection time out is 30 seconds
+	 */
 	public final static int ConnectTimeOutTime = 30000;
+	/**
+	 * url of image
+	 */
 	private String url;
+	/**
+	 * callback object which will be run after loading image successfully
+	 */
 	private MethodHandler<UrlBitmap> handler;
 	private Context context;
 
-	public LoadImgThread(Context context, String url, MethodHandler<UrlBitmap> postHandler) {
+	public LoadImgThread(Context context, String url,
+			MethodHandler<UrlBitmap> postHandler) {
 		this.context = context;
 		this.url = url;
 		handler = postHandler;
@@ -28,22 +46,19 @@ public class LoadImgThread implements Runnable, Serializable {
 
 	public void run() {
 		Bitmap bm = null;
-		// if (isInterrupted())
-		// return;
 		if (url != null && url.length() > 0) {
 			try {
+				/* load image from memory again in case it has been loaded successfully by other thread */
 				bm = ImageLoadUtil.readImg(url);
-				// if (isInterrupted())
-				// return;
 				if (bm == null) {
+					/* open the url connection and save the image to file
+					 * and load the image to memory for use*/
 					URL mUrl = new URL(url);
 					HttpURLConnection conn = (HttpURLConnection) mUrl
 							.openConnection();
 					conn.setConnectTimeout(ConnectTimeOutTime);
 					conn.setDoInput(true);
 					conn.connect();
-					// if (isInterrupted())
-					// return;
 					InputStream is = conn.getInputStream();
 					ImageLoadUtil.writeImg(context, url, is);
 					bm = ImageLoadUtil.readImg(url);
@@ -55,12 +70,10 @@ public class LoadImgThread implements Runnable, Serializable {
 			} catch (Exception e) {
 			}
 		}
-		// if (isInterrupted())
-		// return;
 		if (bm != null && handler != null) {
 			handler.process(new UrlBitmap(bm, url));
 		}
-		// FIXME: set url to null in order to let clear it in ThreadPool.
+		// set url to null in order to let clear it in ThreadPool.
 		url = null;
 	}
 
@@ -68,6 +81,11 @@ public class LoadImgThread implements Runnable, Serializable {
 		return url;
 	}
 
+	/**
+	 * override equals method to compare two threads
+	 * two threads with the same image url are the same
+	 * used the check whether we should add this thread to thread pool
+	 */
 	@Override
 	public boolean equals(Object o) {
 		if (o == null || o.getClass() != this.getClass())

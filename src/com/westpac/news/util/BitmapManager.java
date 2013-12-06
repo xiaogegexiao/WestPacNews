@@ -12,43 +12,7 @@ import android.graphics.BitmapFactory.Options;
 import android.net.Uri;
 
 public class BitmapManager {
-	// For head img
-	public static final int MAX_HEAD_SCALE = 256 * 256;
-	// For status img
-	public static final int MAX_STATUS_SCALE = 768 * 768;
-
-	public static final int MAX_FILE_SIZE = 1024 * 100;
-
 	public static final int compressRatio = 60;
-
-	public static Bitmap getAppropriateBitmapFromStream(Context context, Uri uri)
-			throws OutOfMemoryError, FileNotFoundException {
-		InputStream input = context.getContentResolver().openInputStream(uri);
-		BitmapFactory.Options opts = new BitmapFactory.Options();
-		opts.inJustDecodeBounds = true;
-		BitmapFactory.decodeStream(input, null, opts);
-
-		opts.inSampleSize = computeSampleSize(opts, -1, 800 * 800);
-		opts.inJustDecodeBounds = false;
-		return BitmapFactory.decodeStream(context.getContentResolver()
-				.openInputStream(uri), null, opts);
-		/*
-		 * int realWidth = opts.outWidth; int realHeight = opts.outHeight; int
-		 * realSize = realWidth * realHeight;
-		 * 
-		 * int stepSize = maxScale; int sampleSize = 1; while (realSize >
-		 * stepSize) { sampleSize <<= 1; stepSize <<= 2; }
-		 * 
-		 * opts.inJustDecodeBounds = false; opts.inSampleSize = sampleSize;
-		 * 
-		 * Bitmap bitmap = null; try { bitmap =
-		 * BitmapFactory.decodeStream(context.getContentResolver()
-		 * .openInputStream(uri), null, opts); } catch (FileNotFoundException e)
-		 * { }
-		 * 
-		 * return new CompressedBitmap(bitmap, sampleSize);
-		 */
-	}
 
 	public static Bitmap getAppropriateBitmapFromFile(String pathname)
 			throws OutOfMemoryError {

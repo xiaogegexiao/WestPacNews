@@ -66,8 +66,8 @@ public class NewsWebView extends Activity {
 	}
 
 
-	/**
-	 * bind the ui components from 
+	/*
+	 * bind ui components from xml config file
 	 */
 	private void findViews() {
 		rl_title = (RelativeLayout) findViewById(R.id.rl_title);
@@ -75,6 +75,7 @@ public class NewsWebView extends Activity {
 		wv_content = (WebView) findViewById(R.id.wv_content);
 		wv_content.setWebViewClient(new LocalWebViewClient());
 
+		/* set proper settings for webview */
 		WebSettings ws = wv_content.getSettings();
 		ws.setAllowContentAccess(true);
 		ws.setAllowFileAccess(true);
@@ -83,11 +84,13 @@ public class NewsWebView extends Activity {
 		ws.setJavaScriptEnabled(true);
 		ws.setSupportZoom(true);
 
+		/* adjust the ui layout of title bar */
 		LinearLayout.LayoutParams llparams = (LinearLayout.LayoutParams) rl_title
 				.getLayoutParams();
 		llparams.height = Util.convertDpToPx(this, 44);
 		rl_title.setLayoutParams(llparams);
 
+		/* adjust the ui layout of back btn */
 		RelativeLayout.LayoutParams rlparams = (RelativeLayout.LayoutParams) btn_back
 				.getLayoutParams();
 		rlparams.leftMargin = Util.convertDpToPx(this, 5);
@@ -101,12 +104,14 @@ public class NewsWebView extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
+		/* resume webview on resume */
 		wv_content.resumeTimers();
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
+		/* pause webview on pause especially for video player in webview */
 		wv_content.pauseTimers();
 	}
 
@@ -115,10 +120,14 @@ public class NewsWebView extends Activity {
 		super.onConfigurationChanged(newConfig);
 	}
 
+	/**
+	 * set listener for back button onclick event 
+	 */
 	private void setListeners() {
 		btn_back.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				/* finish this activity when back btn is clicked */
 				wv_content.stopLoading();
 				wv_content.clearCache(true);
 				finish();
@@ -127,10 +136,18 @@ public class NewsWebView extends Activity {
 		});
 	}
 
+	/**
+	 * load web content to webview
+	 */
 	private void loadContents() {
 		wv_content.loadUrl(weburl);
 	}
 
+	/**
+	 * local class inherit from webviewclient for loading url in the same webview
+	 * @author user
+	 *
+	 */
 	private class LocalWebViewClient extends WebViewClient {
 		@Override
 		public boolean shouldOverrideUrlLoading(WebView view, String url) {
@@ -139,6 +156,10 @@ public class NewsWebView extends Activity {
 		}
 	}
 
+	/**
+	 * listen back button, if there is back history for webview, let the webview go back.
+	 * otherwise finish the activity
+	 */
 	public boolean onKeyDown(int keyCoder, KeyEvent event) {
 		if (wv_content.canGoBack() && keyCoder == KeyEvent.KEYCODE_BACK) {
 			wv_content.goBack();
@@ -147,11 +168,17 @@ public class NewsWebView extends Activity {
 		return false;
 	}
 
+	/**
+	 * match whether the argument url is a valid http link.
+	 * @param url
+	 * @return
+	 */
 	private static boolean matchUrl(final String url) {
 		Pattern p = Pattern.compile(urlPattern);
 		Matcher m = p.matcher(url);
 		return m.matches();
 	}
 
+	/* regext pattern for http link */
 	private static final String urlPattern = "(http|ftp|https):\\/\\/[\\w\\-_]+(\\.[\\w\\-_]+)+([\\w\\-\\.,@?^=%&amp;:/~\\+#]*[\\w\\-\\@?^=%&amp;/~\\+#])?";
 }

@@ -2,22 +2,30 @@ package com.westpac.news.internet;
 
 import android.content.Context;
 
+/**
+ * InternetConnection class for various kinds of http requests
+ * @author xiao
+ *
+ */
 public class InternetConnection {
 	
+	/**
+	 * HttpClients for sending http request
+	 */
 	protected HttpClients mHc;
 	private Context mContext;
-	
-	public static final int INTERNET_CONNECTION_FAIL = 0;
-    public static final int INTERNET_CONNECTION_CANCELED = 18;
-	
-	public static final int CONN_TIMEOUT = 33;
-	public static final int UNKNOWNHOST_ERROR = 38;
 	
 	public InternetConnection(Context context) {
 		mContext = context;
 		mHc = new HttpClients(mContext); 
 	}
 	
+	/**
+	 * get west pac news from server
+	 * @param westpacNewsUrl the http link for news
+	 * @param sb stringbuiler used to receive json result
+	 * @return http response code 
+	 */
 	public int getWestPacNews(String westpacNewsUrl, StringBuilder sb) {
 		mHc.setURL(westpacNewsUrl);
 		mHc.openConnection();

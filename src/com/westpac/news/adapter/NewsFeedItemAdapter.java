@@ -7,7 +7,6 @@ import android.graphics.Bitmap;
 import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,16 +21,28 @@ import com.westpac.news.model.UrlBitmap;
 import com.westpac.news.util.MethodHandler;
 import com.westpac.news.util.Util;
 
+/**
+ * Adapter class for news list
+ * @author xiao
+ *
+ */
 public class NewsFeedItemAdapter extends BaseAdapter {
 	
 	private static final String TAG = "NewsFeedItemAdapter";
 
+	/* the aspect ratio of the image in each news item */
 	private static final float image_aspect_ratio = 1.5f;
 
 	public List<NewsFeed> newsFeedItems;
 	private Context context;
 	private LayoutInflater inflater;
 	
+	/**
+	 * Lazy load 
+	 * isBusy is to used to indicate that whether it is in scroll or fling state currently.
+	 * if isBusy is true, default img will be set to every img.
+	 * otherwise load the image from memory or file system or network
+	 */
 	private boolean isBusy = false;
 
 	public NewsFeedItemAdapter(Context c, List<NewsFeed> newsFeedItems) {
@@ -80,10 +91,15 @@ public class NewsFeedItemAdapter extends BaseAdapter {
 			convertView = inflater.inflate(R.layout.newsfeeditem, null);
 		}
 		convertView.setTag(newsfeeditem);
+		
+		/**
+		 * setpadding for every listview item
+		 */
 		int topbottom_padding = Util.convertDpToPx(context, 10);
 		int leftright_padding = Util.convertDpToPx(context, 9);
 		convertView.setPadding(leftright_padding, topbottom_padding, leftright_padding, topbottom_padding);
 
+		/* bind ui components and set layout params for photo */
 		newsfeedtitle = (TextView) convertView
 				.findViewById(R.id.tv_newsfeed_title);
 		newsfeedcontent = (TextView) convertView
@@ -98,9 +114,16 @@ public class NewsFeedItemAdapter extends BaseAdapter {
 		llparams.rightMargin = photoright_margin;
 		photo.setLayoutParams(llparams);
 
-		newsfeedtitle.setText(newsfeeditem.getDatelineString());
+		/**
+		 * set title with headline and content with slugline
+		 */
+		newsfeedtitle.setText(newsfeeditem.getHeadLine());
 		newsfeedcontent.setText(newsfeeditem.getSlugLine());
 
+		/**
+		 * if this news item doesn't contain img resource, hide the imageview
+		 * otherwise try to load the image.
+		 */
 		if (TextUtils.isEmpty(newsfeeditem.getThumbnailImageHref())
 				|| "null".equals(newsfeeditem.getThumbnailImageHref())) {
 			photo.setTag(null);
@@ -108,17 +131,27 @@ public class NewsFeedItemAdapter extends BaseAdapter {
 		} else {
 			photo.setVisibility(View.VISIBLE);
 			photo.setTag(newsfeeditem.getThumbnailImageHref());
+			/* default image */
 			photo.setImageResource(R.drawable.whats_new);
 			if (!isBusy) {
+				/**
+				 * in idle sate, we should load image from memory and file system first
+				 */
 				Bitmap bm = newsfeeditem.getBitmap();
 				if (bm != null) {
 					photo.setImageBitmap(bm);
 				} else {
-					// set default image
-					photo.setImageResource(R.drawable.whats_new);
+					/**
+					 * if we cannot get the image from memory and file system both
+					 * , we should add a new image load thread to thread pool necessarily.
+					 * Method Handler will be invoked after the image has been load successfully from network 
+					 */
 					newsfeeditem.getPostBitmapAsync(context,
 							new MethodHandler<UrlBitmap>() {
 								public void process(UrlBitmap para) {
+									/**
+									 * call back to send a message to refresh handler
+									 */
 									Message msg = refreshImgHandler
 											.obtainMessage(position, photo);
 									refreshImgHandler.sendMessage(msg);
@@ -126,11 +159,13 @@ public class NewsFeedItemAdapter extends BaseAdapter {
 							});
 				}				
 			}
-			Log.d(TAG,"isBusy ===================== " + isBusy);
 		}
 		return convertView;
 	}
 
+	/**
+	 * refresh handler used to async-load image when the image has been downloaded from server 
+	 */
 	Handler refreshImgHandler = new Handler() {
 		public void handleMessage(android.os.Message msg) {
 			ImageView iv = (ImageView) msg.obj;
@@ -139,6 +174,10 @@ public class NewsFeedItemAdapter extends BaseAdapter {
 					|| position < 0)
 				return;
 			NewsFeed mt = newsFeedItems.get(position);
+			/**
+			 * must check whether the tag of imageview equals the thumbnailimagehref
+			 * since a lot of situations that the tag will be changed by the view recycle mechanism of baseadapter
+			 */
 			if (iv != null
 					&& iv.getTag() != null
 					&& ((String) iv.getTag())

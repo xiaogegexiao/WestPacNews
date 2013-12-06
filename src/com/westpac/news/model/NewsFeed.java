@@ -10,6 +10,11 @@ import android.graphics.Bitmap;
 import com.westpac.news.util.ImageLoadUtil;
 import com.westpac.news.util.MethodHandler;
 
+/**
+ * NewsFeed model class for every news item
+ * @author xiao
+ *
+ */
 public class NewsFeed {
 	private String webHref;
 	private int identifier;
@@ -101,10 +106,20 @@ public class NewsFeed {
 		this.thumbnailImageHref = thumbnailImageHref;
 	}
 	
+	/**
+	 * get Bitmap from memory and file system	
+	 * @return
+	 */
 	public Bitmap getBitmap() {
 		return ImageLoadUtil.readImg(getThumbnailImageHref());
 	}
 	
+	/**
+	 * go to load bitmap in a thread from server
+	 * handler is a callback after the image has been loaded
+	 * @param context
+	 * @param handler
+	 */
 	public void getPostBitmapAsync(final Context context, final MethodHandler<UrlBitmap> handler) {
 		ImageLoadUtil.readBitmapAsync(context, getThumbnailImageHref(),
 				new MethodHandler<UrlBitmap>() {
@@ -123,9 +138,17 @@ public class NewsFeed {
 		NewsFeed.sdf = sdf;
 	}
 
+	/**
+	 * the format of date used in the json result
+	 */
 	private static SimpleDateFormat sdf = new SimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ssZ");
 
+	/**
+	 * convert time from format string to long
+	 * @param dateline
+	 * @return
+	 */
 	private static long getDateTimeLongValue(String dateline) {
 		try {
 			Date date = sdf.parse(dateline);
@@ -136,6 +159,11 @@ public class NewsFeed {
 		return 0;
 	}
 	
+	/**
+	 * convert time from long to format string
+	 * @param dateline
+	 * @return
+	 */
 	private static String getDateTimeStringValue(long dateline) {
 		try {
 			Date date = new Date(dateline);

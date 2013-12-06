@@ -2,6 +2,11 @@ package com.westpac.news.model;
 
 import android.graphics.Bitmap;
 
+/**
+ * model class with imagebitmap and imageurl
+ * @author xiao
+ *
+ */
 public class UrlBitmap {
 	private Bitmap img;
 	private String url;
@@ -28,7 +33,7 @@ public class UrlBitmap {
 	}
 
 	/**
-	 * 一个像素(int)占四个byte
+	 * In java int has 4bytes
 	 * 
 	 * @return
 	 */
@@ -39,6 +44,9 @@ public class UrlBitmap {
 		return 0;
 	}
 
+	/**
+	 * override equals message for this class
+	 */
 	@Override
 	public boolean equals(Object o) {
 		if (o.getClass() == this.getClass())
