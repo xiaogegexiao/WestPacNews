@@ -12,12 +12,30 @@ import android.graphics.Bitmap;
 import com.westpac.news.model.UrlBitmap;
 import com.westpac.news.threads.LoadImgThread;
 
+/**
+ * ImageLoadUtil class for imageload
+ * from network server
+ * from memory and local file system
+ * @author Xiao
+ *
+ */
 public class ImageLoadUtil {
 
-	// static HashMap<String,Bitmap> buffer = new HashMap<String,Bitmap>();
+	/**
+	 * Thread pool for image loading threads
+	 */
 	static ThreadPoolExecutor threadPool = new ThreadPoolExecutor(20, 40, 3,TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(50),new ThreadPoolExecutor.DiscardOldestPolicy());
+	/**
+	 * hashmap used to track threads in pool
+	 */
 	public static HashMap<String,LoadImgThread> urlPool = new HashMap<String,LoadImgThread>();
 
+	/**
+	 * if there is no equal thread in the pool, start a new thread and put it into the thread pool to fetch the image from server
+	 * @param context
+	 * @param url
+	 * @param handler call back 
+	 */
 	public static void readBitmapAsync(Context context, String url,
 			MethodHandler<UrlBitmap> handler) {
 		Bitmap bt = ImageLoadUtil.readImg(url);
@@ -34,18 +52,20 @@ public class ImageLoadUtil {
         }
 	}
 
+	/**
+	 * read image from memory and local file system
+	 * @param url
+	 * @return
+	 */
 	public static Bitmap readImg(String url) {
         return ImageBuffer.readImg(url);
 	}
 
+	/**
+	 * write image inputstream into local file system
+	 */
 	public static void writeImg(Context context, String url, InputStream is) {
 	    ImageBuffer.writeImg(context, url, is);
 		urlPool.remove(url);
-	}
-	public static void removeThread(String url){
-	    if(url != null && urlPool.get(url) != null){
-	        threadPool.remove(urlPool.get(url));
-	        urlPool.remove(url);
-	    }
 	}
 }

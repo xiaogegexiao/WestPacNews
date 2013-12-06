@@ -1,14 +1,11 @@
 package com.westpac.news.util;
 
 /**
- * Method Handler class
- * 
- * @author Xiao Mei
- * @weibo http://weibo.com/u/1675796095
- * @email tss_chs@126.com
+ * Method Handler interface
+ * After image loading , we will call a callback implements this interface
+ * @author Xiao
  * 
  */
 public interface MethodHandler<P> {
     public void process(P para);
-
 }

@@ -20,27 +20,44 @@ import com.westpac.news.model.UrlBitmap;
 import com.westpac.news.util.comparators.FileTimeComparator;
 
 /**
- * images buffer.
- * 
+ * ImageBuffer class is responsible for memory image management and local file system image management
+ * 2-level buffer for images
+ * first level is in memory
+ * second level is in local file system
+ * @author Xiao
+ *
  */
 public class ImageBuffer {
-//	private static Context context;
 	private static String bufferFolderPath = FileManager.ImageBufferFolder
 			.getAbsolutePath();
 	private static File bufferFolder = FileManager.ImageBufferFolder;
 
+	/**
+	 * memory size threshold for images, when the images size in memory exceed this value, the images in memory should be delete by half
+	 */
+	public final static int MaxMemorySize = (int) (10 * 1024 * 1024);
+	/**
+	 * file size threshold for images, when the images size in local file folder exceed this value, the images in local file folder should be delete by half
+	 */
 	public final static int MaxBufferSize = (int) (5 * 1024 * 1024);
+	
+	/* track of local file system */
 	private static List<File> bufferImgs;
+	/* track of local image file size */
 	private static int curBufferSize;
 
-	public final static int MaxMemorySize = (int) (10 * 1024 * 1024);
+	/* track of images in memory */
 	private static List<UrlBitmap> memoryImgs;
+	/* track of memory image size */
 	public static int curMemorySize;
 
 	static {
 		initBuffer();
 	}
 
+	/**
+	 * init both memory buffer and local file buffer
+	 */
 	private static void initBuffer() {
 		bufferImgs = new ArrayList<File>();
 		File[] imgs = bufferFolder.listFiles(new FilenameFilter() {
@@ -54,26 +71,46 @@ public class ImageBuffer {
 				return false;
 			}
 		});
+		
+		/**
+		 * get the image file size
+		 */
 		curBufferSize = 0;
 		for (File f : imgs) {
 			bufferImgs.add(f);
 			curBufferSize += f.length();
 		}
 		Collections.sort(bufferImgs, new FileTimeComparator());
+		
+		/**
+		 * allocate memory for images
+		 */
 		memoryImgs = new LinkedList<UrlBitmap>();
 		curMemorySize = 0;
 	}
 
+	/*
+	 * writelock for writing image to file system
+	 */
 	private static Object writeLock = new Object();
 
+	/**
+	 * write image to file system
+	 * @param context
+	 * @param url
+	 * @param is
+	 */
 	public static void writeImg(Context context, String url, InputStream is) {
-		url = WestPacUtility.changeFileName(url);
+		url = Util.changeFileName(url);
 		synchronized (writeLock) {
 			String path = getPathFromUrl(url);
 			File file = new File(path);
 			if (file.exists())
 				return;
 			byte[] buffer = new byte[1024];
+			/**
+			 * attention: here we should check the exist of the local file folder in case user delete it by wrong operation
+			 */
 			if (FileManager.checkImageBufferFolderExist(context)) {
 				bufferFolderPath = FileManager.ImageBufferFolder
 						.getAbsolutePath();
@@ -93,7 +130,7 @@ public class ImageBuffer {
 	}
 
 	/**
-	 * add a file to buffer
+	 * add a file to file buffer track
 	 */
 	private static void addFile(File file) {
 		bufferImgs.add(file);
@@ -103,7 +140,7 @@ public class ImageBuffer {
 	}
 
 	/**
-	 * add a bitmap to memory
+	 * add a bitmap to memory buffer track
 	 */
 	private static void addUrlBitmap(UrlBitmap ub) {
 		memoryImgs.add(ub);
@@ -136,10 +173,16 @@ public class ImageBuffer {
 		}
 	}
 
+	/**
+	 * readlock for reading image from memory or file
+	 * used to maintain thread safety
+	 */
 	private static Object readLock = new Object();
 
+	/* set maximum normal image size to 400k not gif */
 	private static final int MaxSingleFileSize = 400 * 1024;
 	
+	/* set maximum normal gif size to 2M */
 	private static final int MaxSingleGIFFileSize = 2 * 1024 * 1024;
 
 	/***
@@ -149,7 +192,7 @@ public class ImageBuffer {
 	public static Bitmap readImg(String url) {
 		if (url == null || url.length() == 0)
 			return null;
-		url = WestPacUtility.changeFileName(url);
+		url = Util.changeFileName(url);
 		try {
 			synchronized (readLock) {
 				UrlBitmap ub = readImgFromMem(url);
@@ -201,39 +244,6 @@ public class ImageBuffer {
 	}
 
 	/**
-	 * read img async, try to download it if the img doesn't exist in local.
-	 */
-//	public static void readBitmapAsync(String url,
-//			MethodHandler<UrlBitmap> handler) {
-//		Bitmap bt = readImg(url);
-//		if (bt == null) {
-//			LoadImgThread thread = new LoadImgThread(url, handler);
-//			thread.start();
-//		} else
-//			handler.process(new UrlBitmap(bt, url));
-//	}
-
-	public static void deleteBitmap(String url) {
-		url = WestPacUtility.changeFileName(url);
-		deleteFileFromMemory(url);
-		deleteFileFromBuffer(url);
-		String path = getPathFromUrl(url);
-		File file = new File(path);
-		file.delete();
-	}
-
-	private static void deleteFileFromMemory(String url) {
-		for (UrlBitmap ub : memoryImgs) {
-			if (ub.getUrl().equals(url)) {
-				memoryImgs.remove(ub);
-				curMemorySize -= ub.getImgSize();
-				ub.getImg().recycle();
-				break;
-			}
-		}
-	}
-
-	/**
 	 * delete specified file by url.
 	 * 
 	 * @param url
@@ -252,19 +262,6 @@ public class ImageBuffer {
 			file.delete();
 		}
 	}
-
-	/**
-	 * read img async, try to download it if the img doesn't exist in local.
-	 */
-	// public static void readSameBitmapAsync(String url,
-	// MethodHandler<UrlBitmap> handler) {
-	// Bitmap bt = readImg(url);
-	// if (bt == null) {
-	// LoadSameImgThread thread = new LoadSameImgThread(url, handler);
-	// ThreadPool.execute(thread);
-	// } else
-	// handler.process(new UrlBitmap(bt, url));
-	// }
 
 	private static Pattern FileNamePattern = Pattern.compile("[^\\d\\w\\._]+");
 
